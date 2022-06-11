@@ -13,10 +13,12 @@ class productController extends products
 
     public ?float $categoryCurrency;
 
-    public ?array $firstField;
+    public ?string $sortMethod;
 
     private function checkAccess(){
-        session_start();
+        if(!isset($_SESSION)) {
+            session_start();
+        }
         if(isset($_COOKIE['ID'])) {
             if (session_id() != $_COOKIE['ID']) {
                 session_unset();
@@ -44,20 +46,22 @@ class productController extends products
         if(isset($_POST['uploadData']) && isset($_POST['subCategory'])){
             $name = str_replace(' ', '_', strtolower(trim($_POST['nameGeo'])));
             $engName = str_replace(' ', '_', strtolower(trim($_POST['nameEng'])));
+            $descGeo = trim($_POST['DescGeo']);
+            $descEng = trim($_POST['DescEng']);
             $fields = $_POST['subCategory'];
-            $priceFieldGeo = str_replace(' ', '_', strtolower(trim($_POST['PriceGeo'])));
-            $priceFieldEng = str_replace(' ', '_', strtolower(trim($_POST['PriceEng'])));
+            $priceFieldGeo = str_replace([' ','.'] , ['_',''], strtolower(trim($_POST['PriceGeo'])));
+            $priceFieldEng = str_replace([' ','.'] , ['_',''], strtolower(trim($_POST['PriceEng'])));
             foreach ($fields as $key=>$value){
                 if (strlen($value) < 2){
                     echo "<script type='text/javascript'> alert('ველები არასწორად არის შეყვანილი'); window.location.href = '/admin/category';  </script>";
                     return false;
                 }
-                $fields[$key] = str_replace(' ', '_', trim($value));
             }
+            $fields=str_replace([' ','.'] , ['_',''], $fields);
             $imgExt = pathinfo($_FILES["image"]["name"], PATHINFO_EXTENSION);
             $imgName = $engName.".".$imgExt;
 
-            if($this->addCategoryToDatabase($name, $engName, $imgName, $fields, $priceFieldGeo, $priceFieldEng)){
+            if($this->addCategoryToDatabase($name, $engName, $imgName, $descGeo, $descEng, $fields, $priceFieldGeo, $priceFieldEng)){
                 // upload image to directory
                 $imgTemp = $_FILES["image"]["tmp_name"];
                 $directory = "View/images/".$imgName;
@@ -81,12 +85,16 @@ class productController extends products
         $this->mainCurrency = array_shift($this->categoryArray);
     }
 
+
     public function getProductArray()
     {
         $url = explode('/',urldecode($_SERVER['REQUEST_URI']));
+        $sort = $this->sortMethod;
+        if ($sort){
+            $sort = "ORDER BY $sort * 1";
+        }
         $tableName= end($url);
-        $productArray = $this->getProductData($tableName) ?? [];
-        $this->productArray = array_reverse($productArray);
+        $this->productArray = $this->getProductData($tableName, $sort) ?? [];
     }
 
     public function getColumnArray()
@@ -96,7 +104,7 @@ class productController extends products
         $columnArray = $this->getColumnData($tableName) ?? [];
         $columnArray['tableName']=$tableName;
         $this->columnArray = $columnArray;
-        $this->firstField = array_shift($this->columnArray);
+        array_shift($this->columnArray);
     }
 
     public function addNewProduct()
@@ -179,6 +187,18 @@ class productController extends products
         }
     }
 
+    public function changeSortMethod(){
+        if (!$this->checkAccess()) { return false;}
+        $url = explode('/',urldecode($_SERVER['REQUEST_URI']));
+        $tableName = $url[2];
+        $sort = "'{$_POST['sort']}'";
+        if ($this->updateSortMethod($sort,$tableName)){
+            header("location: /admin/products/$tableName");
+        } else {
+            echo "<script type='text/javascript'> alert('ოპერაცია წარუმატებელია'); window.location.href = '/admin/products/$tableName'; </script>";
+        }
+    }
+
     public function getCurrency(){
         $url = explode('/',urldecode($_SERVER['REQUEST_URI']));
         $tableName = $url[3];
@@ -190,11 +210,24 @@ class productController extends products
         }
     }
 
+    public function getSortMethod(){
+        $url = explode('/',urldecode($_SERVER['REQUEST_URI']));
+        $tableName = $url[3];
+        $CategoryArray = $this->getCategoryData();
+        foreach($CategoryArray as $value){
+            if ($value['EngName']==$tableName){
+                $this->sortMethod = $value['sortMethod'];
+            }
+        }
+    }
+
     public function declareArrays(){
+        $this->getCurrency();
+        $this->getSortMethod();
         $this->getCategoryArray();
         $this->getColumnArray();
         $this->getProductArray();
-        $this->getCurrency();
+
     }
 
     public function navigationBar(){
@@ -210,7 +243,7 @@ class productController extends products
            if($page == 'en' && $i % 2 == 0 || $page == 'ge' && $i % 2 > 0 ){
                continue;
            } elseif (is_array($value)) {
-               echo "<th><h1>" . str_replace('_', ' ', $value['Field']) . "</h1></th>";
+               echo "<th>" . str_replace('_', ' ', $value['Field']) . "</th>";
            }
        }
     }
@@ -230,36 +263,56 @@ class productController extends products
 
     public function tableData($page){
         foreach($this->productArray as $dataArray){
-            $productID[]=array_shift($dataArray);
+            $productID=array_shift($dataArray);
             echo "<tr>";
-            $i=-1;
             if ($page == 'admin'){
-                foreach ($dataArray as $value){
-                    if ($value == end($dataArray) || $value == prev($dataArray)){
+                $i=0;
+                foreach ($dataArray as $key => $value){
+                    if (++$i >= count($dataArray)-1){
                         echo '<td>'.str_replace('_', ' ', $value).'$'."</td>";
                     } else {
                         echo '<td>'.str_replace('_', ' ', $value)."</td>";
                     }
                 }
-                echo "<td><a onclick='confirmRemove(`პროდუქტი`,`/admin/products/delete/".$this->columnArray['tableName']."/".$productID[0].")`)' >წაშლა</a></td>";
+                echo "<td><a onclick='confirmRemove(`პროდუქტი`,`/admin/products/delete/".$this->columnArray['tableName']."/".$productID."`)' >წაშლა</a></td>";
             }
-            elseif ($page == 'en' || $page == 'ge'){
-                foreach ($dataArray as $value){
-                    $i++;
-                    if (($page=='en' && $i % 2 == 0) || $page == 'ge' && $i % 2 > 0) {
+            elseif ($page == 'en'){
+                $i=0;
+                foreach ($dataArray as $key => $value){
+                    if ($i++ % 2 == 0) {
                         continue;
-                    } elseif ($value==end($dataArray)){
-                        echo "<td>".$value*$this->categoryCurrency." GEL</td>";
-                    } elseif ($value==prev($dataArray)){
-                        echo "<td>".$value*$this->categoryCurrency." ლარი</td>";
-                    } else {
-                       echo "<td>".str_replace('_', ' ', $value). "</td>";
+                    } elseif ($i == count($dataArray)){
+                        echo "<td data-label='$key'>".$value*$this->categoryCurrency." GEL</td>";
+                    }else {
+                       echo "<td data-label='$key'>".str_replace('_', ' ', trim($value)). "</td>";
                     }
                 }
+            } else {
+                $i=0;
+                foreach ($dataArray as $key=>$value){
+                    if ($i++ % 2 > 0) {
+                        continue;
+                    } elseif ($i == count($dataArray)-1){
+                        echo "<td data-label='$key'>".$value*$this->categoryCurrency." ლარი</td>";
+                    }else {
+                        echo "<td data-label='$key'>".str_replace('_', ' ', trim($value)). "</td>";
+                    }
+                }
+
             }
             echo "</tr>";
 
         }
+    }
+
+    public function columnList(){
+        foreach ($this->columnArray as $value){
+            $column = $value['Field'] ?? NULL;
+            if ($column) {
+                echo "<option value='$column'>$column</option>";
+            }
+        }
+        echo "<option value= 'NULL' >გასუფთავება</option>";
     }
 
 }

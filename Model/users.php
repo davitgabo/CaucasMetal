@@ -8,7 +8,9 @@ class users extends database
         $conn=$this->connectToDatabase();
         $sql = "SELECT Username, Password FROM CM_Users where Username='{$username}'";
         $result = $conn->query($sql);
-        $userData = $result->fetch_all(MYSQLI_ASSOC);
+        while($row = $result->fetch_assoc()){
+        $userData[] = $row;
+        }
         $conn->close();
         return $userData;
     }

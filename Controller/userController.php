@@ -23,7 +23,6 @@ class userController extends users
     }
 
     public function logout(){
-        session_start();
         session_unset();
         session_destroy();
         setcookie("PHPSESSID", "", 1);

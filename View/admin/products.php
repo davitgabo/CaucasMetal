@@ -40,6 +40,13 @@
         <input type="text" name="CategoryCurrency" id="currency" placeholder="კატეგორიის დოლარის კურსი">
         <input type="submit" value="ატვირთე">
     </form>
+    <form class="category-sort" action="/changeSortMethod/<?= $obj->columnArray['tableName']; ?>" method="post">
+      <label>აირჩიე რით დასორტირდეს</label>
+      <select name="sort" id="">
+        <?php $obj->columnList(); ?>
+      </select>
+      <input type="submit" value="სორტირება">
+    </form>
     <script type="text/javascript" src="/View/admin/script/script.js"></script>
   </body>
 </html>

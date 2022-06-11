@@ -196,6 +196,11 @@ body {
   top: 0;
   left: 200px;
 }
+.category-sort {
+  position: absolute;
+  top: 0;
+  left: 800px;
+}
 .dollar-div {
   position: absolute;
   top: 0;
@@ -287,6 +292,18 @@ body {
   border-radius: 100px;
   cursor: pointer;
 }
+.two-columns {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+
+  width: 100%;
+  height: 90%;
+
+  overflow: auto;
+}
+.two-columns textarea {
+  min-height: 200px;
+}
 .input-fields-container {
   display: flex;
   flex-direction: column;
@@ -303,7 +320,7 @@ body {
 }
 .category-input-text {
   height: var(--input-height, 30px);
-  min-height: 40px;
+  min-height: 60px;
   width: var(--input-width, 260px);
   border: 0;
 
@@ -378,20 +395,15 @@ body {
 .product-table th h1 {
   color: #fff;
   font-size: 1em;
-  font-weight: bold;
   text-align: center;
 }
 .product-table td {
   color: #fff;
   font-size: 1em;
-
-  box-shadow: 0 2px 2px -2px #0e1119;
 }
 .product-table td,
 .product-table th {
-  padding-bottom: 2%;
-  padding-top: 2%;
-  padding-left: 2%;
+  padding: 10px;
 }
 .product-table th {
   background-color: var(--admin-blue, #212942);
@@ -406,20 +418,6 @@ body {
 /* Background-color of the even rows */
 .product-table tr:nth-child(even) {
   background-color: #2a3453;
-}
-.product-table td:hover {
-  background-color: var(--cmorange);
-
-  color: #403e10;
-
-  box-shadow: #7f7c21 -1px 1px, #7f7c21 -2px 2px, #7f7c21 -3px 3px,
-    #7f7c21 -4px 4px, #7f7c21 -5px 5px, #7f7c21 -6px 6px;
-  transform: translate3d(6px, -6px, 0);
-
-  transition-delay: 0s;
-  transition-duration: 0.6s;
-  transition-property: all;
-  transition-timing-function: line;
 }
 @media (max-width: 800px) {
   .product-table td:nth-child(4),

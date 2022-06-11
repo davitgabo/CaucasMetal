@@ -58,11 +58,15 @@
         </div>
       </div>
       <div class="input-fields-container" id='input-fields-container'>
-        <input required class="category-input-text" type="text" name="nameGeo" placeholder="კატეგორიის სახელი">
-        <input required class="category-input-text" type="text" name="nameEng" placeholder="Category Name">
-        <input required class="category-input-text" type="text" name="PriceGeo" placeholder="კატეგორიის ფასი" id="price">
-        <input required class="category-input-text" type="text" name="PriceEng" placeholder="Category Price">
-        <button class="input-add" id="input-add" type="button" onclick="addInputField('input-fields-container')">+</button>
+        <div class="two-columns" id="two-columns">
+          <input required class="category-input-text" type="text" name="nameGeo" placeholder="კატეგორიის სახელი">
+          <input required class="category-input-text" type="text" name="nameEng" placeholder="Category Name">
+          <input required class="category-input-text" type="text" name="PriceGeo" placeholder="კატეგორიის ფასი" id="price">
+          <input required class="category-input-text" type="text" name="PriceEng" placeholder="Category Price">
+          <textarea name="DescGeo" rows="4" cols="20" placeholder="კატეგორიის აღწერა" ></textarea>
+          <textarea name="DescEng" rows="4" cols="20" placeholder="Category description" ></textarea>
+        </div>
+        <button class="input-add" id="input-add" type="button" onclick="addInputField('two-columns')">+</button>
       </div>
       <!-- TODO Show green success bar on submit and go to product page -->
       <input class="add-category-submit" type="submit" value="ატვირთე" name="uploadData">

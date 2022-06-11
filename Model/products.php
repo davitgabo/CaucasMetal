@@ -4,7 +4,7 @@ require_once __ROOT__."/Routing/autoLoader.php";
 
 class products extends database
 {
-    protected function addCategoryToDatabase($name, $engName, $img, $fields, $priceFieldGeo, $priceFieldEng ){
+    protected function addCategoryToDatabase($name, $engName, $img, $descGeo, $descEng, $fields, $priceFieldGeo, $priceFieldEng ){
         //connect to database
         $conn = $this->connectToDatabase();
 
@@ -24,7 +24,7 @@ class products extends database
         }
 
         //insert category into database
-        if ($this->insertIntoTable($conn, 'CM_Category', ['Name', 'EngName','ImagePath'], [$name,$engName,$img]) == false){
+        if ($this->insertIntoTable($conn, 'CM_Category', ['Name', 'EngName','ImagePath','Description_Geo','Description_Eng'], [$name,$engName,$img,$descGeo,$descEng]) == false){
             $conn->close();
             echo "<script type='text/javascript'> alert('ვერ მოხერხდა კატეგორიის ცხრილში დამატება'); </script>";
             return false;
@@ -43,10 +43,10 @@ class products extends database
         return $categoryArray;
     }
 
-    protected function getProductData($tableName)
+    protected function getProductData($tableName, $sort)
     {
         $conn = $this->connectToDatabase();
-        $productArray = $this->getDataFromTable($conn, $tableName, "*") ?? [];
+        $productArray = $this->getDataFromTable($conn, $tableName, "*", $sort) ?? [];
         $conn->close();
         return $productArray;
     }
@@ -54,7 +54,11 @@ class products extends database
     protected function getColumnData($tableName){
         $conn = $this->connectToDatabase();
         $result = $this->selectColumns($conn,$tableName);
-        $dataArray = $result->fetch_all(MYSQLI_ASSOC);
+        if ($result){
+        while($row = $result->fetch_assoc()){
+        $dataArray[] = $row;
+        }
+        }
         $conn->close();
         return $dataArray;
     }
@@ -128,5 +132,19 @@ class products extends database
         }
 
     }
-}
 
+    protected function updateSortMethod($sort, $categoryName){
+        $conn = $this->connectToDatabase();
+        $tableName = 'CM_Category';
+        $column = 'sortMethod';
+        $condition = "EngName = '$categoryName'";
+        if ($this->updateTableData($conn,$tableName,$column,$sort, $condition)){
+            $conn->close();
+            return true;
+        } else {
+            $conn->close();
+            return false;
+        }
+
+    }
+}

@@ -5,6 +5,9 @@ class database
     protected function connectToDatabase()
     {
         $host = "localhost";
+//        $username = "caucasu4_admin";
+//        $password = "anriAdamia";
+//        $dataBase = "caucasu4_CaucasMetal";
         $username = "root";
         $password = "Password123!";
         $dataBase = "CaucasMetal";
@@ -17,7 +20,9 @@ class database
     {
         $sql = "SELECT * FROM {$tableName} WHERE {$fieldName} = '{$valueToCheck}'";
         $result = $conn->query($sql);
-        $tableData = $result->fetch_all(MYSQLI_ASSOC);
+        while($row = $result->fetch_assoc()){
+        $tableData[] = $row;
+        }
         if ($tableData){
             return true;
         } else {
@@ -39,10 +44,10 @@ class database
     }
 
     protected function createTable($conn, $tableName, $fields, $priceField)
-    {   
+    {
         $sql = "CREATE TABLE {$tableName} ({$tableName}ID int NOT NULL AUTO_INCREMENT, ";
-        $strFields = implode(' varchar(70), ', $fields);
-        $sql .= $strFields." varchar(70), {$priceField[0]} FLOAT, {$priceField[1]} FLOAT, PRIMARY KEY ({$tableName}ID))";
+        $strFields = implode(' varchar(255), ', $fields);
+        $sql .= $strFields." varchar(255), {$priceField[0]} FLOAT, {$priceField[1]} FLOAT, PRIMARY KEY ({$tableName}ID))";
         if ($conn->query($sql)){
            return true;
         } else {
@@ -50,15 +55,18 @@ class database
         }
     }
 
-    protected function getDataFromTable($conn, $tableName, $fields)
+    protected function getDataFromTable($conn, $tableName, $fields, $condition = NULL)
     {
      if   (is_array($fields)){
          $fields = implode(', ', $fields);
      }
-        $sql = "SELECT $fields FROM $tableName";
+        $sql = "SELECT $fields FROM $tableName $condition";
         $result = $conn->query($sql);
+        
         if($result){
-        $dataArr = $result->fetch_all(MYSQLI_ASSOC);
+        while($row = $result->fetch_assoc()){
+        $dataArr[] = $row;
+        }
         return $dataArr;
         } else {
            return false;
@@ -95,7 +103,7 @@ class database
         }
     }
 
-    protected function updateTableData($conn,$tableName,$column,$value, $condition){
+    protected function updateTableData($conn,$tableName,$column, $value, $condition){
 
         $sql = "UPDATE $tableName SET $column = $value WHERE $condition";
         if ($conn->query($sql)){
